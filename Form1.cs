@@ -85,10 +85,12 @@ namespace SBPD_DT_Sentinel
                 else if (citation.violationCode.Contains("22507.8") || citation.violationCode.Contains("22522 CVC"))
                 {
                     handicapCites.Add(citation);
+                    otherCites.Add(citation);
                 }
                 else if (citation.location.Contains("N/OF") || citation.location.Contains("S/OF") || citation.location.Contains("E/OF") || citation.location.Contains("W/OF") || citation.location.Contains("A/F") || citation.location.Contains("MUNICIPAL LOT"))
                 {
                     oldTownCites.Add(citation);
+                    otherCites.Add(citation);
                 }
                 else
                 {
@@ -211,7 +213,6 @@ namespace SBPD_DT_Sentinel
 
 
                         // OTHER CITES
-                        otherCites.AddRange(handicapCites); // Append handiCapCites to otherCites
                         foreach (DataTicketCitation otherCite in otherCites)
                         {
                             string[] convDateTime = otherCite.dateTime.Split("/");
