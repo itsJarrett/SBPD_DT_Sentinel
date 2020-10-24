@@ -1,5 +1,8 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Text;
 
 namespace SBPD_DT_Sentinel
@@ -12,6 +15,13 @@ namespace SBPD_DT_Sentinel
         public string location { get; set; }
         public string comments { get; set; }
 
+        public enum geoZone
+        {
+            oldTown,
+            northEnd,
+            theHill
+        }
+
         public DataTicketCitation(string dateTime, string citationNumber, string violationCode, string location, string comments)
         {
             this.dateTime = dateTime;
@@ -19,6 +29,30 @@ namespace SBPD_DT_Sentinel
             this.violationCode = violationCode;
             this.location = location;
             this.comments = comments;
+        }
+
+        public geoZone GetGeoZone()
+        {
+            Dictionary<geoZone, double> geoZoneDistances = new Dictionary<geoZone, double>();
+            using (WebClient wc = new WebClient())
+            {
+                string bingLocation = location + ", Seal Beach CA 90740";
+                var json = wc.DownloadString("http://dev.virtualearth.net/REST/V1/Routes/Walking?wp.0=" + bingLocation + "&wp.1=" + "143 Main St, Seal Beach CA 90740" + "&key=AoyuBnIo4_lBOPShKB--TkfzosE0nGDN1gkJX9sBl5XkA3Tz7bC0xzofuSCfD7PN");
+                dynamic jsonObj = JsonConvert.DeserializeObject(json);
+                double travelDistance = jsonObj.resourceSets[0].resources[0].travelDistance;
+                geoZoneDistances.Add(geoZone.oldTown, travelDistance);
+
+                json = wc.DownloadString("http://dev.virtualearth.net/REST/V1/Routes/Walking?wp.0=" + bingLocation + "&wp.1=" + "13900 Seal Beach Blvd, Seal Beach CA 90740" + "&key=AoyuBnIo4_lBOPShKB--TkfzosE0nGDN1gkJX9sBl5XkA3Tz7bC0xzofuSCfD7PN");
+                jsonObj = JsonConvert.DeserializeObject(json);
+                travelDistance = jsonObj.resourceSets[0].resources[0].travelDistance;
+                geoZoneDistances.Add(geoZone.northEnd, travelDistance);
+
+                json = wc.DownloadString("http://dev.virtualearth.net/REST/V1/Routes/Walking?wp.0=" + bingLocation + "&wp.1=" + "637 Beachcomber Dr, Seal Beach CA 90740" + "&key=AoyuBnIo4_lBOPShKB--TkfzosE0nGDN1gkJX9sBl5XkA3Tz7bC0xzofuSCfD7PN");
+                jsonObj = JsonConvert.DeserializeObject(json);
+                travelDistance = jsonObj.resourceSets[0].resources[0].travelDistance;
+                geoZoneDistances.Add(geoZone.theHill, travelDistance);
+            }
+            return geoZoneDistances.Aggregate((l, r) => l.Value < r.Value ? l : r).Key;
         }
     }
 }

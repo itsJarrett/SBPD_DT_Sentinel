@@ -19,10 +19,16 @@ namespace SBPD_DT_Sentinel
         List<DataTicketCitation> dataticketCites = new List<DataTicketCitation>();
 
         List<DataTicketCitation> oneHourCites = new List<DataTicketCitation>();
+        List<DataTicketCitation> otherCites = new List<DataTicketCitation>();
+
         List<DataTicketCitation> sweeperCites = new List<DataTicketCitation>();
         List<DataTicketCitation> mainStCites = new List<DataTicketCitation>();
         List<DataTicketCitation> beachLotCites = new List<DataTicketCitation>();
-        List<DataTicketCitation> otherCites = new List<DataTicketCitation>();
+
+        List<DataTicketCitation> oldTownCites = new List<DataTicketCitation>();
+        List<DataTicketCitation> northEndCites = new List<DataTicketCitation>();
+        List<DataTicketCitation> theHillCites = new List<DataTicketCitation>();
+        List<DataTicketCitation> handicapCites = new List<DataTicketCitation>();
         public Form1()
         {
             ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
@@ -53,23 +59,52 @@ namespace SBPD_DT_Sentinel
                 if (citation.violationCode.Contains("8.15.055 SBMC") && citation.comments.Contains("ONE HOUR"))
                 {
                     oneHourCites.Add(citation);
+                    oldTownCites.Add(citation);
                 }
                 else if (citation.violationCode.Contains("8.15.055 SBMC") && citation.comments.Contains("2 HRS"))
                 {
                     mainStCites.Add(citation);
                 }
-                else if (citation.location.Contains("MAIN ST"))
+                else if (citation.violationCode.Contains("8.15.055 SBMC") && citation.comments.Contains("VEHICLE FAILED TO MOVE THE REQUIRED 150 FEET"))
                 {
                     mainStCites.Add(citation);
-                } else if (citation.comments.Contains("STREET SWEEPING"))
+                }
+                else if (citation.location.Contains("MAIN ST") || citation.location.Contains("METERED ZONE"))
+                {
+                    mainStCites.Add(citation);
+                }
+                else if (citation.comments.Contains("STREET SWEEPING"))
                 {
                     sweeperCites.Add(citation);
-                } else if (citation.location.Contains("BEACH LOT"))
+                }
+                else if (citation.location.Contains("BEACH LOT"))
                 {
                     beachLotCites.Add(citation);
-                } else
+                }
+                else if (citation.violationCode.Contains("22507.8") || citation.violationCode.Contains("22522 CVC"))
+                {
+                    handicapCites.Add(citation);
+                }
+                else if (citation.location.Contains("N/OF") || citation.location.Contains("S/OF") || citation.location.Contains("E/OF") || citation.location.Contains("W/OF") || citation.location.Contains("A/F") || citation.location.Contains("MUNICIPAL LOT"))
+                {
+                    oldTownCites.Add(citation);
+                }
+                else
                 {
                     otherCites.Add(citation);
+                    DataTicketCitation.geoZone geoZone = citation.GetGeoZone();
+                    if (geoZone == DataTicketCitation.geoZone.oldTown)
+                    {
+                        oldTownCites.Add(citation);
+                    } 
+                    else if (geoZone == DataTicketCitation.geoZone.northEnd)
+                    {
+                        northEndCites.Add(citation);
+                    }
+                    else if (geoZone == DataTicketCitation.geoZone.theHill)
+                    {
+                        theHillCites.Add(citation);
+                    }
                 }
             }
         }
@@ -82,17 +117,9 @@ namespace SBPD_DT_Sentinel
             openFileDialogDT.ShowDialog();
             label1.Visible = true;
             string fileName = openFileDialogDT.FileName;
+            button1.Visible = false;
             importDTData(fileName);
-            /*
-            using (WebClient wc = new WebClient())
-            {
-                string location = dataticketCites[1].location;
-                var json = wc.DownloadString("http://dev.virtualearth.net/REST/V1/Routes/Walking?wp.0=" + location + "&wp.1=" + "8TH ST BEACH LOT" + "&key=AoyuBnIo4_lBOPShKB--TkfzosE0nGDN1gkJX9sBl5XkA3Tz7bC0xzofuSCfD7PN");
-                dynamic jsonObj = JsonConvert.DeserializeObject(json);
-                richTextBox1.Text = jsonObj.resourceSets[0].resources[0].travelDistance;
-            }
-            */
-
+            button2.Visible = true;
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -181,6 +208,7 @@ namespace SBPD_DT_Sentinel
 
 
                         // OTHER CITES
+                        otherCites.AddRange(handicapCites); // Append handiCapCites to otherCites
                         foreach (DataTicketCitation otherCite in otherCites)
                         {
                             string[] convDateTime = otherCite.dateTime.Split("/");
@@ -196,8 +224,128 @@ namespace SBPD_DT_Sentinel
                         firstWorksheet.Cells[row, 16].Value = citeNumber;
                         citeNumber = 0;
                     }
-                    excelPackage.Save();
                 }
+                else if (firstWorksheet.Name == "Sample")
+                {
+                    StringBuilder test = new StringBuilder();
+                    for (int row = start.Row + 6; row <= 52; row++)
+                    {
+                        if (!firstWorksheet.Cells[row, 2].Text.Contains("Count")) continue;
+                        
+                        int citeNumber = 0;
+                        // OLDTOWN CITES
+                        foreach (DataTicketCitation oldTownCite in oldTownCites)
+                        {
+                            string[] convDateTime = oldTownCite.dateTime.Split(" ");
+                            string day = convDateTime[0];
+                            firstWorksheet.Cells[row, 1].Style.Numberformat.Format = "mm/d/yy";
+                            string worksheetDay = firstWorksheet.Cells[row, 1].Text;
+                            if (day == worksheetDay)
+                            {
+                                citeNumber++;
+                            }
+                        }
+                        firstWorksheet.Cells[row, 5].Value = citeNumber;
+                        test.AppendLine(citeNumber.ToString());
+                        citeNumber = 0;
+
+                        // MAIN ST CITES
+                        foreach (DataTicketCitation mainStCite in mainStCites)
+                        {
+                            string[] convDateTime = mainStCite.dateTime.Split(" ");
+                            string day = convDateTime[0];
+                            firstWorksheet.Cells[row, 1].Style.Numberformat.Format = "mm/d/yy";
+                            string worksheetDay = firstWorksheet.Cells[row, 1].Text;
+                            if (day == worksheetDay)
+                            {
+                                citeNumber++;
+                            }
+                        }
+                        firstWorksheet.Cells[row, 6].Value = citeNumber;
+                        citeNumber = 0;
+
+                        // BEACH LOTS CITES
+                        foreach (DataTicketCitation beachLotCite in beachLotCites)
+                        {
+                            string[] convDateTime = beachLotCite.dateTime.Split(" ");
+                            string day = convDateTime[0];
+                            firstWorksheet.Cells[row, 1].Style.Numberformat.Format = "mm/d/yy";
+                            string worksheetDay = firstWorksheet.Cells[row, 1].Text;
+                            if (day == worksheetDay)
+                            {
+                                citeNumber++;
+                            }
+                        }
+                        firstWorksheet.Cells[row, 7].Value = citeNumber;
+                        citeNumber = 0;
+
+
+                        // NORTH END CITES
+                        foreach (DataTicketCitation northEndCite in northEndCites)
+                        {
+                            string[] convDateTime = northEndCite.dateTime.Split(" ");
+                            string day = convDateTime[0];
+                            firstWorksheet.Cells[row, 1].Style.Numberformat.Format = "mm/d/yy";
+                            string worksheetDay = firstWorksheet.Cells[row, 1].Text;
+                            if (day == worksheetDay)
+                            {
+                                citeNumber++;
+                            }
+                        }
+                        firstWorksheet.Cells[row, 8].Value = citeNumber;
+                        citeNumber = 0;
+
+
+                        // THE HILL CITES
+                        foreach (DataTicketCitation theHillCite in theHillCites)
+                        {
+                            string[] convDateTime = theHillCite.dateTime.Split(" ");
+                            string day = convDateTime[0];
+                            firstWorksheet.Cells[row, 1].Style.Numberformat.Format = "mm/d/yy";
+                            string worksheetDay = firstWorksheet.Cells[row, 1].Text;
+                            if (day == worksheetDay)
+                            {
+                                citeNumber++;
+                            }
+                        }
+                        firstWorksheet.Cells[row, 9].Value = citeNumber;
+                        citeNumber = 0;
+
+
+                        // HANDICAP CITES
+                        foreach (DataTicketCitation handicapCite in handicapCites)
+                        {
+                            string[] convDateTime = handicapCite.dateTime.Split(" ");
+                            string day = convDateTime[0];
+                            firstWorksheet.Cells[row, 1].Style.Numberformat.Format = "mm/d/yy";
+                            string worksheetDay = firstWorksheet.Cells[row, 1].Text;
+                            if (day == worksheetDay)
+                            {
+                                citeNumber++;
+                            }
+                        }
+                        firstWorksheet.Cells[row, 10].Value = citeNumber;
+                        citeNumber = 0;
+
+
+                        // STREET SWEEPER CITES
+                        foreach (DataTicketCitation streetSweeperCite in sweeperCites)
+                        {
+                            string[] convDateTime = streetSweeperCite.dateTime.Split(" ");
+                            string day = convDateTime[0];
+                            firstWorksheet.Cells[row, 1].Style.Numberformat.Format = "mm/d/yy";
+                            string worksheetDay = firstWorksheet.Cells[row, 1].Text;
+                            if (day == worksheetDay)
+                            {
+                                citeNumber++;
+                            }
+                        }
+                        firstWorksheet.Cells[row, 11].Value = citeNumber;
+                        citeNumber = 0;
+                    }
+                    richTextBox1.Text = test.ToString();
+                }
+                excelPackage.Save();
             }
         }
     }
