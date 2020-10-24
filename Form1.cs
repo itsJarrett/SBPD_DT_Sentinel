@@ -29,6 +29,7 @@ namespace SBPD_DT_Sentinel
         List<DataTicketCitation> northEndCites = new List<DataTicketCitation>();
         List<DataTicketCitation> theHillCites = new List<DataTicketCitation>();
         List<DataTicketCitation> handicapCites = new List<DataTicketCitation>();
+
         public Form1()
         {
             ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
@@ -118,6 +119,7 @@ namespace SBPD_DT_Sentinel
             label1.Visible = true;
             string fileName = openFileDialogDT.FileName;
             button1.Visible = false;
+            richTextBox1.Text = "Performing mapping differential analysis. Program may take up to 5 minutes based on the amount of citations being parsed.\n\n STANDBY. BUTTON WILL APPEAR WHEN DONE!";
             importDTData(fileName);
             button2.Visible = true;
         }
@@ -139,6 +141,7 @@ namespace SBPD_DT_Sentinel
                 var end = firstWorksheet.Dimension.End;
                 if (firstWorksheet.Name == "CSO MONTHLY")
                 {
+                    richTextBox1.Text = richTextBox1.Text + "\n\nMonthly Log recognized as field log... appending...";
                     for (int row = start.Row + 6; row <= 37; row++)
                     {
                         int citeNumber = 0;
@@ -227,7 +230,7 @@ namespace SBPD_DT_Sentinel
                 }
                 else if (firstWorksheet.Name == "Sample")
                 {
-                    StringBuilder test = new StringBuilder();
+                    richTextBox1.Text = richTextBox1.Text + "\n\nMonthly Log recognized as daily log... appending...";
                     for (int row = start.Row + 6; row <= 52; row++)
                     {
                         if (!firstWorksheet.Cells[row, 2].Text.Contains("Count")) continue;
@@ -246,7 +249,6 @@ namespace SBPD_DT_Sentinel
                             }
                         }
                         firstWorksheet.Cells[row, 5].Value = citeNumber;
-                        test.AppendLine(citeNumber.ToString());
                         citeNumber = 0;
 
                         // MAIN ST CITES
@@ -343,7 +345,6 @@ namespace SBPD_DT_Sentinel
                         firstWorksheet.Cells[row, 11].Value = citeNumber;
                         citeNumber = 0;
                     }
-                    richTextBox1.Text = test.ToString();
                 }
                 excelPackage.Save();
             }
