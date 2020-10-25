@@ -37,7 +37,7 @@ namespace SBPD_DT_Sentinel
             using (WebClient wc = new WebClient())
             {
                 string bingLocation = location + ", Seal Beach CA 90740";
-                var json = wc.DownloadString("http://dev.virtualearth.net/REST/V1/Routes/Walking?wp.0=" + bingLocation + "&wp.1=" + "143 Main St, Seal Beach CA 90740" + "&key=AoyuBnIo4_lBOPShKB--TkfzosE0nGDN1gkJX9sBl5XkA3Tz7bC0xzofuSCfD7PN");
+                var json = wc.DownloadString("http://dev.virtualearth.net/REST/V1/Routes/Walking?wp.0=" + bingLocation + "&wp.1=" + "215 Main St, Seal Beach CA 90740" + "&key=AoyuBnIo4_lBOPShKB--TkfzosE0nGDN1gkJX9sBl5XkA3Tz7bC0xzofuSCfD7PN");
                 dynamic jsonObj = JsonConvert.DeserializeObject(json);
                 double travelDistance = jsonObj.resourceSets[0].resources[0].travelDistance;
                 geoZoneDistances.Add(geoZone.oldTown, travelDistance);
@@ -47,7 +47,7 @@ namespace SBPD_DT_Sentinel
                 travelDistance = jsonObj.resourceSets[0].resources[0].travelDistance;
                 geoZoneDistances.Add(geoZone.northEnd, travelDistance);
 
-                json = wc.DownloadString("http://dev.virtualearth.net/REST/V1/Routes/Walking?wp.0=" + bingLocation + "&wp.1=" + "637 Beachcomber Dr, Seal Beach CA 90740" + "&key=AoyuBnIo4_lBOPShKB--TkfzosE0nGDN1gkJX9sBl5XkA3Tz7bC0xzofuSCfD7PN");
+                json = wc.DownloadString("http://dev.virtualearth.net/REST/V1/Routes/Walking?wp.0=" + bingLocation + "&wp.1=" + "1430 Catalina Ave, Seal Beach CA 90740" + "&key=AoyuBnIo4_lBOPShKB--TkfzosE0nGDN1gkJX9sBl5XkA3Tz7bC0xzofuSCfD7PN");
                 jsonObj = JsonConvert.DeserializeObject(json);
                 travelDistance = jsonObj.resourceSets[0].resources[0].travelDistance;
                 geoZoneDistances.Add(geoZone.theHill, travelDistance);

@@ -121,9 +121,34 @@ namespace SBPD_DT_Sentinel
             label1.Visible = true;
             string fileName = openFileDialogDT.FileName;
             button1.Visible = false;
-            richTextBox1.Text = "Performing mapping differential analysis. Program may take up to 5 minutes based on the amount of citations being parsed.\n\n STANDBY. BUTTON WILL APPEAR WHEN DONE!";
+            richTextBox1.Text = "Performing citation analysis and Seal Beach mapping sector analysis... Program may take up to 5 minutes based on the amount of citations being parsed.\n\n STANDBY. BUTTON WILL APPEAR WHEN DONE!";
             importDTData(fileName);
             button2.Visible = true;
+        }
+
+        public void processCitationAmount(List<DataTicketCitation> citationList, ExcelWorksheet excelWorksheet, int excelRow, int excelColumn)
+        {
+            int citationAmount = 0;
+            foreach (DataTicketCitation currentCitation in citationList)
+            {
+                string[] convDateTime = currentCitation.dateTime.Split("/");
+                string day = convDateTime[1];
+                string worksheetDay = excelWorksheet.Cells[excelRow, 1].Text;
+                if (day.Length == 1)
+                    day = "0" + day;
+                if (excelWorksheet.Name != "CSO MONTHLY")
+                {
+                    convDateTime = currentCitation.dateTime.Split(" ");
+                    day = convDateTime[0];
+                    excelWorksheet.Cells[excelRow, 1].Style.Numberformat.Format = "mm/d/yy";
+                    worksheetDay = excelWorksheet.Cells[excelRow, 1].Text;
+                }
+                if (day == worksheetDay)
+                {
+                    citationAmount++;
+                }
+            }
+            excelWorksheet.Cells[excelRow, excelColumn].Value = citationAmount;
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -146,87 +171,20 @@ namespace SBPD_DT_Sentinel
                     richTextBox1.Text = richTextBox1.Text + "\n\nMonthly Log recognized as field log... appending...";
                     for (int row = start.Row + 6; row <= 37; row++)
                     {
-                        int citeNumber = 0;
                         // ONE HOUR CITES
-                        foreach (DataTicketCitation oneHourCite in oneHourCites)
-                        {
-                            string[] convDateTime = oneHourCite.dateTime.Split("/");
-                            string day = convDateTime[1];
-                            string worksheetDay = firstWorksheet.Cells[row, 1].Text;
-                            if (day.Length == 1)
-                                day = "0" + day;
-                            if (day == worksheetDay)
-                            {
-                                citeNumber++;
-                            }
-                        }
-                        firstWorksheet.Cells[row, 12].Value = citeNumber;
-                        citeNumber = 0;
+                        processCitationAmount(oneHourCites, firstWorksheet, row, 12);
 
                         // SWEEPER CITES
-                        foreach (DataTicketCitation sweeperCite in sweeperCites)
-                        {
-                            string[] convDateTime = sweeperCite.dateTime.Split("/");
-                            string day = convDateTime[1];
-                            string worksheetDay = firstWorksheet.Cells[row, 1].Text;
-                            if (day.Length == 1)
-                                day = "0" + day;
-                            if (day == worksheetDay)
-                            {
-                                citeNumber++;
-                            }
-                        }
-                        firstWorksheet.Cells[row, 13].Value = citeNumber;
-                        citeNumber = 0;
+                        processCitationAmount(sweeperCites, firstWorksheet, row, 13);
 
                         // MAIN ST CITES
-                        foreach (DataTicketCitation mainStCite in mainStCites)
-                        {
-                            string[] convDateTime = mainStCite.dateTime.Split("/");
-                            string day = convDateTime[1];
-                            string worksheetDay = firstWorksheet.Cells[row, 1].Text;
-                            if (day.Length == 1)
-                                day = "0" + day;
-                            if (day == worksheetDay)
-                            {
-                                citeNumber++;
-                            }
-                        }
-                        firstWorksheet.Cells[row, 14].Value = citeNumber;
-                        citeNumber = 0;
+                        processCitationAmount(mainStCites, firstWorksheet, row, 14);
 
                         // BEACH LOT CITES
-                        foreach (DataTicketCitation beachLotCite in beachLotCites)
-                        {
-                            string[] convDateTime = beachLotCite.dateTime.Split("/");
-                            string day = convDateTime[1];
-                            string worksheetDay = firstWorksheet.Cells[row, 1].Text;
-                            if (day.Length == 1)
-                                day = "0" + day;
-                            if (day == worksheetDay)
-                            {
-                                citeNumber++;
-                            }
-                        }
-                        firstWorksheet.Cells[row, 15].Value = citeNumber;
-                        citeNumber = 0;
-
+                        processCitationAmount(beachLotCites, firstWorksheet, row, 15);
 
                         // OTHER CITES
-                        foreach (DataTicketCitation otherCite in otherCites)
-                        {
-                            string[] convDateTime = otherCite.dateTime.Split("/");
-                            string day = convDateTime[1];
-                            string worksheetDay = firstWorksheet.Cells[row, 1].Text;
-                            if (day.Length == 1)
-                                day = "0" + day;
-                            if (day == worksheetDay)
-                            {
-                                citeNumber++;
-                            }
-                        }
-                        firstWorksheet.Cells[row, 16].Value = citeNumber;
-                        citeNumber = 0;
+                        processCitationAmount(otherCites, firstWorksheet, row, 16);
                     }
                 }
                 else if (firstWorksheet.Name == "Sample")
@@ -238,113 +196,26 @@ namespace SBPD_DT_Sentinel
                         
                         int citeNumber = 0;
                         // OLDTOWN CITES
-                        foreach (DataTicketCitation oldTownCite in oldTownCites)
-                        {
-                            string[] convDateTime = oldTownCite.dateTime.Split(" ");
-                            string day = convDateTime[0];
-                            firstWorksheet.Cells[row, 1].Style.Numberformat.Format = "mm/d/yy";
-                            string worksheetDay = firstWorksheet.Cells[row, 1].Text;
-                            if (day == worksheetDay)
-                            {
-                                citeNumber++;
-                            }
-                        }
-                        firstWorksheet.Cells[row, 5].Value = citeNumber;
-                        citeNumber = 0;
+                        processCitationAmount(oldTownCites, firstWorksheet, row, 5);
 
                         // MAIN ST CITES
-                        foreach (DataTicketCitation mainStCite in mainStCites)
-                        {
-                            string[] convDateTime = mainStCite.dateTime.Split(" ");
-                            string day = convDateTime[0];
-                            firstWorksheet.Cells[row, 1].Style.Numberformat.Format = "mm/d/yy";
-                            string worksheetDay = firstWorksheet.Cells[row, 1].Text;
-                            if (day == worksheetDay)
-                            {
-                                citeNumber++;
-                            }
-                        }
-                        firstWorksheet.Cells[row, 6].Value = citeNumber;
-                        citeNumber = 0;
+                        processCitationAmount(mainStCites, firstWorksheet, row, 6);
 
                         // BEACH LOTS CITES
-                        foreach (DataTicketCitation beachLotCite in beachLotCites)
-                        {
-                            string[] convDateTime = beachLotCite.dateTime.Split(" ");
-                            string day = convDateTime[0];
-                            firstWorksheet.Cells[row, 1].Style.Numberformat.Format = "mm/d/yy";
-                            string worksheetDay = firstWorksheet.Cells[row, 1].Text;
-                            if (day == worksheetDay)
-                            {
-                                citeNumber++;
-                            }
-                        }
-                        firstWorksheet.Cells[row, 7].Value = citeNumber;
-                        citeNumber = 0;
-
+                        processCitationAmount(beachLotCites, firstWorksheet, row, 7);
 
                         // NORTH END CITES
-                        foreach (DataTicketCitation northEndCite in northEndCites)
-                        {
-                            string[] convDateTime = northEndCite.dateTime.Split(" ");
-                            string day = convDateTime[0];
-                            firstWorksheet.Cells[row, 1].Style.Numberformat.Format = "mm/d/yy";
-                            string worksheetDay = firstWorksheet.Cells[row, 1].Text;
-                            if (day == worksheetDay)
-                            {
-                                citeNumber++;
-                            }
-                        }
-                        firstWorksheet.Cells[row, 8].Value = citeNumber;
-                        citeNumber = 0;
-
+                        processCitationAmount(northEndCites, firstWorksheet, row, 8);
 
                         // THE HILL CITES
-                        foreach (DataTicketCitation theHillCite in theHillCites)
-                        {
-                            string[] convDateTime = theHillCite.dateTime.Split(" ");
-                            string day = convDateTime[0];
-                            firstWorksheet.Cells[row, 1].Style.Numberformat.Format = "mm/d/yy";
-                            string worksheetDay = firstWorksheet.Cells[row, 1].Text;
-                            if (day == worksheetDay)
-                            {
-                                citeNumber++;
-                            }
-                        }
-                        firstWorksheet.Cells[row, 9].Value = citeNumber;
-                        citeNumber = 0;
+                        processCitationAmount(theHillCites, firstWorksheet, row, 9);
 
 
                         // HANDICAP CITES
-                        foreach (DataTicketCitation handicapCite in handicapCites)
-                        {
-                            string[] convDateTime = handicapCite.dateTime.Split(" ");
-                            string day = convDateTime[0];
-                            firstWorksheet.Cells[row, 1].Style.Numberformat.Format = "mm/d/yy";
-                            string worksheetDay = firstWorksheet.Cells[row, 1].Text;
-                            if (day == worksheetDay)
-                            {
-                                citeNumber++;
-                            }
-                        }
-                        firstWorksheet.Cells[row, 10].Value = citeNumber;
-                        citeNumber = 0;
-
+                        processCitationAmount(handicapCites, firstWorksheet, row, 10);
 
                         // STREET SWEEPER CITES
-                        foreach (DataTicketCitation streetSweeperCite in sweeperCites)
-                        {
-                            string[] convDateTime = streetSweeperCite.dateTime.Split(" ");
-                            string day = convDateTime[0];
-                            firstWorksheet.Cells[row, 1].Style.Numberformat.Format = "mm/d/yy";
-                            string worksheetDay = firstWorksheet.Cells[row, 1].Text;
-                            if (day == worksheetDay)
-                            {
-                                citeNumber++;
-                            }
-                        }
-                        firstWorksheet.Cells[row, 11].Value = citeNumber;
-                        citeNumber = 0;
+                        processCitationAmount(sweeperCites, firstWorksheet, row, 11);
                     }
                 }
                 excelPackage.Save();
