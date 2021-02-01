@@ -140,7 +140,7 @@ namespace SBPD_DT_Sentinel
                 {
                     convDateTime = currentCitation.dateTime.Split(" ");
                     day = convDateTime[0];
-                    excelWorksheet.Cells[excelRow, 1].Style.Numberformat.Format = "mm/d/yy";
+                    excelWorksheet.Cells[excelRow, 1].Style.Numberformat.Format = "m/d/yy";
                     worksheetDay = excelWorksheet.Cells[excelRow, 1].Text;
                 }
                 if (day == worksheetDay)
