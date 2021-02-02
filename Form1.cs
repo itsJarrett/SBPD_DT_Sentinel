@@ -82,7 +82,7 @@ namespace SBPD_DT_Sentinel
                 {
                     beachLotCites.Add(citation);
                 }
-                else if (citation.violationCode.Contains("22507.8") || citation.violationCode.Contains("22522 CVC"))
+                else if (citation.violationCode.Contains("22507.8") || citation.violationCode.Contains("22522"))
                 {
                     handicapCites.Add(citation);
                     otherCites.Add(citation);
