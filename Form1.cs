@@ -260,7 +260,6 @@ namespace SBPD_DT_Sentinel
                     excelWorksheet.Cells[excelRow, 1].Style.Numberformat.Format = "mm/dd/yyyy";
                     worksheetDay = excelWorksheet.Cells[excelRow, 1].Text;
                 }
-                Console.WriteLine(day + "   " + worksheetDay);
                 if (day == worksheetDay)
                 {
                     eventAmount++;
@@ -270,6 +269,36 @@ namespace SBPD_DT_Sentinel
             if (excelWorksheet.Name != "CSO MONTHLY")
             {
                 excelWorksheet.Cells[excelRow, 1].Style.Numberformat.Format = "m/d/yy";
+            }
+        }
+
+        public bool dateAccountedFor(ExcelWorksheet excelWorksheet, int excelRow, int startRow, string date)
+        {
+            for (int row = startRow + 6; row <= excelRow; row++)
+            {
+                excelWorksheet.Cells[row, 1].Style.Numberformat.Format = "mm/dd/yyyy";
+                if (excelWorksheet.Cells[row, 1].Text == date)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public void setWorkDaysViaCADEventData(ExcelWorksheet excelWorksheet, int excelRow, int startRow)
+        {
+            foreach (CADEvent currentEvent in cadEvents)
+            {
+                if (excelWorksheet.Name != "CSO MONTHLY")
+                {
+                    string day = currentEvent.date;
+                    excelWorksheet.Cells[excelRow, 1].Style.Numberformat.Format = "mm/dd/yyyy";
+                    if (excelWorksheet.Cells[excelRow, 1].Text == "" && !dateAccountedFor(excelWorksheet, excelRow, startRow, day))
+                    {
+                        Console.WriteLine("SETTING DATE TO " + day);
+                        excelWorksheet.Cells[excelRow, 1].Value = day;
+                    }
+                }
             }
         }
 
@@ -293,21 +322,6 @@ namespace SBPD_DT_Sentinel
                     richTextBox1.Text = richTextBox1.Text + "\nMonthly Log recognized as field log... appending...";
                     for (int row = start.Row + 6; row <= 37; row++)
                     {
-                        // ONE HOUR CITES
-                        processCitationAmount(oneHourCites, firstWorksheet, row, 12);
-
-                        // SWEEPER CITES
-                        processCitationAmount(sweeperCites, firstWorksheet, row, 13);
-
-                        // MAIN ST CITES
-                        processCitationAmount(mainStCites, firstWorksheet, row, 14);
-
-                        // BEACH LOT CITES
-                        processCitationAmount(beachLotCites, firstWorksheet, row, 15);
-
-                        // OTHER CITES
-                        processCitationAmount(otherCites, firstWorksheet, row, 16);
-
                         // RADIO CALLS
                         processCADEventAmount(radioCalls, firstWorksheet, row, 2);
 
@@ -331,6 +345,21 @@ namespace SBPD_DT_Sentinel
 
                         // OTHER STORAGES
                         processCADEventAmount(otherStorages, firstWorksheet, row, 10);
+
+                        // ONE HOUR CITES
+                        processCitationAmount(oneHourCites, firstWorksheet, row, 12);
+
+                        // SWEEPER CITES
+                        processCitationAmount(sweeperCites, firstWorksheet, row, 13);
+
+                        // MAIN ST CITES
+                        processCitationAmount(mainStCites, firstWorksheet, row, 14);
+
+                        // BEACH LOT CITES
+                        processCitationAmount(beachLotCites, firstWorksheet, row, 15);
+
+                        // OTHER CITES
+                        processCitationAmount(otherCites, firstWorksheet, row, 16);
                     }
                 }
                 else if (firstWorksheet.Name == "Sample")
@@ -339,7 +368,19 @@ namespace SBPD_DT_Sentinel
                     for (int row = start.Row + 6; row <= 52; row++)
                     {
                         if (!firstWorksheet.Cells[row, 2].Text.Contains("Count")) continue;
-                        
+
+                        setWorkDaysViaCADEventData(firstWorksheet, row, start.Row);
+
+                        // BOOKINGS
+                        processCADEventAmount(radioBookings, firstWorksheet, row, 13);
+
+                        // TRANSPORTS
+                        processCADEventAmount(radioTransports, firstWorksheet, row, 14);
+
+                        // REPORTS
+                        var totalReports = crimeReports.Concat(otherReports).Concat(indiaStorages).Concat(oscarStorages).Concat(kiloStorages).Concat(otherStorages).ToList();
+                        processCADEventAmount(totalReports, firstWorksheet, row, 15);
+
                         // OLDTOWN CITES
                         processCitationAmount(oldTownCites, firstWorksheet, row, 5);
 
@@ -360,16 +401,6 @@ namespace SBPD_DT_Sentinel
 
                         // STREET SWEEPER CITES
                         processCitationAmount(sweeperCites, firstWorksheet, row, 11);
-
-                        // BOOKINGS
-                        processCADEventAmount(radioBookings, firstWorksheet, row, 13);
-
-                        // TRANSPORTS
-                        processCADEventAmount(radioTransports, firstWorksheet, row, 14);
-
-                        // REPORTS
-                        var totalReports = crimeReports.Concat(otherReports).Concat(indiaStorages).Concat(oscarStorages).Concat(kiloStorages).Concat(otherStorages).ToList();
-                        processCADEventAmount(totalReports, firstWorksheet, row, 15);
                     }
                 }
                 excelPackage.Save();

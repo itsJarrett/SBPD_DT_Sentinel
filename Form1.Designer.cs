@@ -129,7 +129,7 @@
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "Form1";
-            this.Text = "SBPD DataTicket Sentinel";
+            this.Text = "SBPD Reaper";
             this.ResumeLayout(false);
             this.PerformLayout();
 
